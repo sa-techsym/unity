@@ -4,5 +4,7 @@ https://github.com/editorconfig/editorconfig/wiki/EditorConfig-Properties
 root = true
 
 [*]
+
+[*.{cs}]
 indent_style = tab
 indent_size = 2
