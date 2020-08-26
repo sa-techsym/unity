@@ -5,6 +5,6 @@ root = true
 
 [*] 
 
-[*.{cs}]
+[*.cs]
 indent_style = tab
 indent_size = 2
