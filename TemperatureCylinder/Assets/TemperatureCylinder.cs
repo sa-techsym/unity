@@ -25,7 +25,7 @@ public class TemperatureCylinder : MonoBehaviour
 						 		 z);
 			}
 			
-		private int _segment_count = 31;
+		private int _segment_count = 21;
 		
 		/*private void OnDrawGizmos ()
 			{
@@ -34,7 +34,7 @@ public class TemperatureCylinder : MonoBehaviour
 
 				Gizmos.color = Color.gray;	
 
-				for ( int i = 0; i < _vertex_count; i ++ )
+				for ( int i = 0; i < _segment_count * 4; i ++ )
 						Gizmos.DrawSphere (_mesh.vertices [i], 0.3f);
 			}*/
 		
@@ -47,35 +47,36 @@ public class TemperatureCylinder : MonoBehaviour
 				_mesh.vertices = vertices ();
 				_mesh.triangles = triangles ();
 		
-				_mesh.RecalculateNormals ();
+				_mesh.RecalculateNormals ();	
 			}
 			
-		private int _vertex_count = 0;
+		//private int _vertex_count = 0;
 		
 		private Vector3 [] vertices ()
 			{
-				Vector3 [] result = new Vector3 [_segment_count * 4];
+				List <Vector3> result = new List <Vector3> (); // [_segment_count * 4];
 				
-				for ( float angle = 0; angle < 2f * Mathf.PI; angle += (2f * Mathf.PI)
-										/ _segment_count )
+				float angle = 0;
+				
+				while ( angle < 2f * Mathf.PI )
 					{
-						result [_vertex_count + 0] 
-										= vertex (
-														angle, _inner_radius, -_length / 2);
-						result [_vertex_count	+ 1]
-										= vertex (
-														angle,	_outer_radius, -_length / 2);
-						result [_vertex_count	+ 2]
-										= vertex (
-														angle, _outer_radius,   _length / 2);
-						result [_vertex_count	+ 3]
-										= vertex (
-														angle,	_inner_radius,  _length / 2);
-								
-						_vertex_count += 4;
+						result.Add (
+										vertex (angle, 
+														_inner_radius, -_length));
+						result.Add (
+										vertex (angle,
+														_outer_radius, -_length));
+						result.Add (
+										vertex (angle,
+														_outer_radius,  _length));
+						result.Add (
+										vertex (angle,
+														_inner_radius,  _length));
+			
+						angle += ( 2f * Mathf.PI ) / _segment_count;
 					}
 			
-			return result;
+			return result.ToArray();
 		}
 	
 		private List <int> pattern (int delta)
@@ -94,22 +95,21 @@ public class TemperatureCylinder : MonoBehaviour
 		
 		private int [] triangles ()
 			{
-				//int [] result = new int [_segment_count * 6]; 
 				List <int> result = new List <int> ();
 				
 				int i = 0;
 		
 				while ( i < _segment_count * 24 )
 					{
-						result.AddRange (pattern (i / 6)); //i / 3)); //normally: 2 * i / 6; 
+						result.AddRange (pattern (i / 6)); // must be 4  
 						i += 24;
 					}
 
 				// trim last six indices
 				for ( i = (_segment_count - 1) * 24; i < _segment_count * 24; i ++ )
-						result [i] = result [i] >= _vertex_count 
+						result [i] = result [i] >= _segment_count * 4 
 										? 
-										result [i] - _vertex_count : result [i];
+										result [i] - _segment_count * 4 : result [i];
 										
 				return result.ToArray ();
 			}	
