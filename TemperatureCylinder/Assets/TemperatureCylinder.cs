@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+using System.IO;
+
 public class TemperatureCylinder : MonoBehaviour
 	{
     // Start is called before the first frame update
@@ -25,7 +27,7 @@ public class TemperatureCylinder : MonoBehaviour
 						 		 z);
 			}
 			
-		private int _segment_count = 21;
+		private int _segment_count = 51;
 		
 		/*private void OnDrawGizmos ()
 			{
@@ -43,14 +45,45 @@ public class TemperatureCylinder : MonoBehaviour
 		private void Awake () 
 			{
 				GetComponent <MeshFilter> ().mesh = _mesh = new Mesh ();
-		
+				
+				// ...
 				_mesh.vertices = vertices ();
+				
+				// ...
 				_mesh.triangles = triangles ();
-		
-				_mesh.RecalculateNormals ();	
+				
+				// ...
+				_mesh.normals = normals ();
 			}
 			
 		//private int _vertex_count = 0;
+		
+		private Vector3 [] normals ()
+			{
+				Vector3 [] normals = new Vector3 [_mesh.vertices.Length]; 
+				
+				for ( int i = 0; i < normals.Length; i += 4 )
+						normals [i].Set (0, 0, 
+										- Mathf.Tan (Mathf.PI / 4) * _inner_radius);
+	
+				for ( int i = 3; i < normals.Length; i += 4 )
+						normals [i].Set (0, 0,
+										  Mathf.Tan (Mathf.PI / 4) * _inner_radius);
+												
+				for ( int i = 1; i < normals.Length; i += 4 )
+						normals [i] = Vector3.Reflect (
+										new Vector3 (0, 0, 
+														- Mathf.Tan (Mathf.PI / 4) * _outer_radius),
+										Vector3.left); 
+
+				for ( int i = 2; i < normals.Length; i += 4 )
+						normals [i] = Vector3.Reflect ( 
+										new Vector3 (0, 0, 
+														  Mathf.Tan (Mathf.PI / 4) * _outer_radius),
+										Vector3.right); 
+
+        return normals;
+			}
 		
 		private Vector3 [] vertices ()
 			{
