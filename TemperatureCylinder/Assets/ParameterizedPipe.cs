@@ -10,15 +10,6 @@ public class ParameterizedPipe : MonoBehaviour
 		// Start is called before the first frame update
 		void Start ()
 			{
-				_mesh.RecalculateNormals ();
-				
-				Vector3 [] normals = _mesh.normals;
-				
-				// artificial normal smoothing
-				for ( int i = 0; i < normals.Length; i ++ )
-						normals [i].x = normals [i].y = 0;
-		
-				//_mesh.normals = normals;
 			}
 
 		// Update is called once per frame
@@ -49,19 +40,21 @@ public class ParameterizedPipe : MonoBehaviour
 
 		private Mesh _mesh = null;
 
-		private void Awake ()
+		protected virtual void Awake ()
 			{
 				GetComponent <MeshFilter> ().mesh = _mesh = new Mesh ();
-				
+			
 				// ...
 				_mesh.vertices = vertices ();
 				
 				// ...
 				_mesh.triangles = triangles ();
-				
+		
 				// ...
-				//_mesh.RecalculateNormals ();
+				_mesh.RecalculateNormals ();
 				
+				//NormalSolver.RecalculateNormals (_mesh, 180);
+
 				//Vector3 [] normals = _mesh.normals;
 				
 				// artificial normal smoothing
@@ -72,60 +65,28 @@ public class ParameterizedPipe : MonoBehaviour
 
 				// alternative normal calculation method
 				//_mesh.normals = calculate_normals ();
+
+				
+				float thickness = _outerRadius - _innerRadius;
+
+				Vector2 [] uv = new Vector2 [_mesh.vertices.Length];
+
+				int i = 0;
+
+			//float [] step = {thickness, _length, thickness, +length}; 
+
+				for ( float y = 0; y < 2f * Mathf.PI; y += (2f * Mathf.PI) / _segmentCount )
+						for ( float x = 0;  x < 2 * thickness + 4 * _length; x += (i % 2 == 0) ? thickness : 2 * _length )
+							{
+			 					uv [i] = new Vector2 (x / (2 * thickness + 4 * _length), y / (2f * Mathf.PI));
+								i ++;
+							}
+				
+				_mesh.uv = uv;
+
+				
 			}
 			
-		//private int _vertex_count = 0;
-
-		private Vector3 [] calculate_normals ()
-			{
-				Vector3 [] normals = new Vector3 [_mesh.vertices.Length];
-		
-				//StreamWriter debug = new StreamWriter ("Assets/test.txt", true);
-
-				for ( int i = 0; i < _mesh.triangles.Length; i += 3 )
-					{
-						Vector3 normal = triangle_normal (_mesh.triangles [i + 0], _mesh.triangles [i + 1], _mesh.triangles [i + 2]);
-
-						// artifical normals smoothing
-						// normal.x = normal.y = 0;
-
-						//debug.WriteLine ("triangle: " + (i / 3).ToString ());						
-
-						for ( int j = 0; j < 3; j ++ )
-							{
-								//if ( _mesh.triangles [i + j] == 5 )
-								//		debug.Write (normals [_mesh.triangles [i + j]]);
-				
-								// adding the normal that was calculated to the result								
-								normals [_mesh.triangles [i + j]] += normal;// + _mesh.vertices [_mesh.triangles [i + j]];
-								
-								//if ( _mesh.triangles [i + j] == 5 )
-								//	{
-								//		debug.Write (normal);
-								//		debug.Write (_mesh.vertices [_mesh.triangles [i + j]]);
-								//	}
-							}
-						
-						//debug.WriteLine (normals [5]);
-					}
-
-				//debug.Close ();
-	
-				for ( int i = 0; i < normals.Length; i ++ )
-						normals [i].Normalize ();
-				
-				return normals;
-			}
-
-		private Vector3 triangle_normal (int index_a, int index_b, int index_c)
-			{
-				Vector3 
-						vector_ab = _mesh.vertices [index_b] - _mesh.vertices [index_a],
-						vector_ac = _mesh.vertices [index_c] - _mesh.vertices [index_a]; 
-
-				return Vector3.Cross (vector_ab, vector_ac).normalized;
-			}
-
 		protected virtual Vector3 [] vertices ()
 			{
 				List <Vector3> result = new List <Vector3> (); // [_segment_count * 4];
